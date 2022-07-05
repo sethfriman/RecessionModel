@@ -1,20 +1,16 @@
 # import machine learning packages
 import numpy as np
 import pandas as pd
-from matplotlib import pyplot as plt
-from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 from sklearn import preprocessing
-from sklearn import metrics
 from scipy.stats import ttest_ind
 from CodeBase.Data import get_data
 
 
 class YURModel:
 
-    def __init__(self, total_data=None, train_indices=None, test_indices=None):
+    def __init__(self, total_data=None, train_indices=None, test_indices=None, model=None, scaler=None):
         if total_data is None:
             self.total_data = get_data.get_total_table()
         else:
@@ -27,12 +23,18 @@ class YURModel:
         self.yur_df = self.yur_df[self.yur_columns]
         self.sig_features = self.find_sig_features()
         self.X = self.yur_df.loc[:, self.yur_df.columns.isin(self.sig_features)]
-        self.y = self.yur_df.loc[:, self.yur_df.columns == 'recession_in_next_year']
+        self.y = self.yur_df.loc[:, self.yur_df.columns == 'years_until_recession']
         self.X_train, self.X_test, self.y_train, self.y_test = self.train_test(train_indices, test_indices)
-        self.scaler = preprocessing.StandardScaler().fit(self.X_train)
+        if scaler is None:
+            self.scaler = preprocessing.StandardScaler().fit(self.X_train)
+        else:
+            self.scaler = scaler
         X_scaled = self.scaler.transform(self.X_train)
         self.X_scaled = pd.DataFrame(data=X_scaled, columns=self.X_train.columns)
-        self.linreg = self.fit_model(self.X_scaled, self.y_train)
+        if model is None:
+            self.linreg = self.fit_model()
+        else:
+            self.linreg = model
 
     def find_sig_features(self):
         sig_features = []
@@ -51,10 +53,10 @@ class YURModel:
         return sig_features
 
     def plot_cov(self):
-        return pd.DataFrame.cov(self.riny_df[self.sig_features])
+        return pd.DataFrame.cov(self.yur_df[self.sig_features])
 
     def train_test(self, train_indices=None, test_indices=None):
-        if train_indices is None:
+        if (train_indices is None) | (test_indices is None):
             return train_test_split(self.X, self.y, test_size=0.3)
         else:
             return (self.X.filter(train_indices, axis=0),
@@ -76,7 +78,7 @@ class YURModel:
         coefs_df = pd.DataFrame()
         coefs_df['Feature'] = self.linreg.feature_names_in_
         coefs_df['Coefficient'] = self.linreg.coef_[0]
-        coefs_df.reindex(coefs_df.Coefficient.abs().sort_values(ascending=False).index)
+        coefs_df = coefs_df.reindex(coefs_df.Coefficient.abs().sort_values(ascending=False).index)
         return coefs_df
 
     def get_scores(self):
@@ -84,15 +86,11 @@ class YURModel:
         train_accuracy = round(self.linreg.score(self.X_scaled, self.y_train), 3)
         return test_accuracy, train_accuracy
 
-    def get_present_data(self, pres_df=None):
+    def get_present_data(self):
         # Predictions for the most recent year
-        if pres_df is None:
-            present_data = self.total_data[(self.total_data['recession_in_next_year'].isnull())]
-            present_data['yur_pred'] = self.linreg.predict(self.scaler.transform(present_data[self.sig_features]))
-            return present_data
-        else:
-            pres_df['yur_pred'] = self.linreg.predict(self.scaler.transform(pres_df[self.sig_features]))
-            return pres_df
+        present_data = self.total_data[(self.total_data['recession_in_next_year'].isnull())]
+        present_data['yur_pred'] = self.linreg.predict(self.scaler.transform(present_data[self.sig_features]))
+        return present_data[['date', 'yur_pred']]
 
     def get_preds_table(self, preds_df=None):
         # Makes a prediction for all entries in the table based on the model

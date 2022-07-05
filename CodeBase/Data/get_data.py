@@ -224,13 +224,14 @@ def get_total_table():
     RINYVect = np.vectorize(recessionInNextYear)
     IRVect = np.vectorize(inRecession)
 
-    total_data = get_unemp_table().merge(get_mhp_table(), how='outer', on='date')
-    total_data = total_data.merge(get_cpi_table(), how='outer', on='date')
-    total_data = total_data.merge(get_sp_table(), how='left', on='date')
-    total_data = total_data.merge(get_yield_table(), how='left', on='date')
+    total_data = get_unemp_table().merge(get_mhp_table(), how='inner', on='date')
+    total_data = total_data.merge(get_cpi_table(), how='inner', on='date')
+    total_data = total_data.merge(get_sp_table(), how='inner', on='date')
+    total_data = total_data.merge(get_yield_table(), how='inner', on='date')
 
     total_data['years_since_recession'] = YSRVect(total_data.date.values)
     total_data['years_until_recession'] = YURVect(total_data.date.values)
     total_data['recession_in_next_year'] = RINYVect(total_data.date.values)
     total_data['in_recession'] = IRVect(total_data.date.values)
+    total_data.to_csv('total_data.csv')
     return total_data
