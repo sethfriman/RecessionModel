@@ -25,7 +25,8 @@ class Visualizer:
         labels = {x: x.replace('_', ' ').title()}
         for it in y:
             labels[it] = it.replace('_', ' ').title()
-        fig = px.line(subdata, x=x, y=y, labels=labels, title='Variable Visualization Chart', )
+        fig = px.line(subdata, x=x, y=y, labels=labels)
+        fig.update_layout(title={"text": "Variable Visualization Chart", "y": 0.9})
         # for i in range(1, len(y)):
         #     fig.add_trace(px.line(subdata, x=x, y=y[i]))
 

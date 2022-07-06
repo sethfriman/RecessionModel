@@ -101,6 +101,8 @@ if __name__ == "__main__":
     app.layout = html.Div(
         [
             html.H1("Recession Tracker Dashboard"),
+            html.H3('Created By: Seth Friman'),
+            html.H4('Beta Version'),
             html.Div(
                 [
                     html.Div(
@@ -116,7 +118,7 @@ if __name__ == "__main__":
                                 value=['yield_diff', '36_mo_cpi_change_all'],
                                 multi=True,
                             )
-                        ], style={"width": '25%', "margin-top": "13%"}
+                        ], style={"width": '25%', "margin-top": "17%", 'zIndex': 2147483647}
                     ),
                     html.Div(
                         [
@@ -130,7 +132,7 @@ if __name__ == "__main__":
                                 value='date',
                                 className="dropdown"
                             )
-                        ], style={"width": '25%', "margin-top": "13%"}
+                        ], style={"width": '25%', "margin-top": "17%", 'zIndex': 2147483647}
                     ),
                     html.Div(
                         [
@@ -154,16 +156,17 @@ if __name__ == "__main__":
                                 - If the linear model model predicts less than a year, there will most likely be a 
                                 recession
                                 
-                                *Current scores indicate a ''' + likelihood_string + ''' likelihood of a recession 
+                                *Current scores indicate a **''' + likelihood_string + '''** likelihood of a recession 
                                 within the next year*
                             '''),
                         ], style={"margin-left": "0.5%", "border": "2px black solid", "width": '30%'}
                     ),
                 ],
                 className="row",
-                style={"display": 'flex'}
+                style={"display": 'flex', "margin-top": "-8%"}
             ),
-            dcc.Graph(id='variable-plot', figure=fig, style={"position": "relative", "margin-top": "-5%"}),
+            dcc.Graph(id='variable-plot', figure=fig, style={"position": "relative", "margin-top": "-2.5%"},
+                      config={'displayModeBar': False}),
             dcc.RangeSlider(min(available_years), max(available_years), 1,
                             value=[min(available_years), max(available_years)],
                             marks={year: str(year) for year in range(min(available_years), max(available_years) + 1)},
