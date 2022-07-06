@@ -89,6 +89,15 @@ if __name__ == "__main__":
     yur_rec_pred = (datetime.datetime.strptime(yur_last_date, '%Y-%m-%d') +
                     datetime.timedelta(int(365 * yur_rec_val))).strftime('%Y-%m-%d')
 
+    if riny_rec_val < 0.5:
+        likelihood_string = 'low'
+    elif yur_rec_val <= 1:
+        likelihood_string = 'high'
+    elif riny_rec_val < 0.92:
+        likelihood_string = 'possible'
+    else:
+        likelihood_string = 'high'
+
     app.layout = html.Div(
         [
             html.H1("Recession Tracker Dashboard"),
@@ -107,7 +116,7 @@ if __name__ == "__main__":
                                 value=['yield_diff', '36_mo_cpi_change_all'],
                                 multi=True,
                             )
-                        ], style={"width": '25%', "margin-top": "2.5%"}
+                        ], style={"width": '25%', "margin-top": "13%"}
                     ),
                     html.Div(
                         [
@@ -121,14 +130,34 @@ if __name__ == "__main__":
                                 value='date',
                                 className="dropdown"
                             )
-                        ], style={"width": '25%', "margin-top": "2.5%"}
+                        ], style={"width": '25%', "margin-top": "13%"}
                     ),
                     html.Div(
                         [
-                            html.H2("Latest Predictions"),
-                            html.H4("Logistic Predicts Recession Starting: " + riny_rec_pred),
-                            html.H4("Linear Predicts Recession Starting: " + yur_rec_pred),
-                        ], style={"margin-left": "10%"}
+                            html.H2("Latest Predictions", style={"text-decoration": "underline", "textAlign": "center"}),
+                            html.H4("Logistic Predicts Recession Starting:", style={"textAlign": "center"}),
+                            html.H3(riny_rec_pred, style={"textAlign": "center"}),
+                            html.Br(),
+                            html.H4("Linear Predicts Recession Starting:", style={"textAlign": "center"}),
+                            html.H3(yur_rec_pred, style={"textAlign": "center"}),
+                        ], style={"margin-left": "0.5%", "border": "2px black solid"}
+                    ),
+                    html.Div(
+                        [
+                            html.H2("Main Takeaways / Usability", style={"text-decoration": "underline",
+                                                                         "textAlign": "center"}),
+                            dcc.Markdown('''
+                                - If the logistic model says there will not be a recession in the next year, there won't
+                                be
+                                - If there is a recession in the next year, the logistic model will most likely spot it
+                                - Pay close attention to economy if logistic model prob hits 0.9 or higher
+                                - If the linear model model predicts less than a year, there will most likely be a 
+                                recession
+                                
+                                *Current scores indicate a ''' + likelihood_string + ''' likelihood of a recession 
+                                within the next year*
+                            '''),
+                        ], style={"margin-left": "0.5%", "border": "2px black solid", "width": '30%'}
                     ),
                 ],
                 className="row",
@@ -150,11 +179,54 @@ if __name__ == "__main__":
                                                  [{"name": i, "id": i} for i in total_preds.columns]),
                         ], style=dict(width='55%')
                     ),
+                    dcc.Markdown('''
+                        # Summary
+                        ##### Note: Values below will change as the model is run, these are not dynamic so they will \
+                        not update with each run. Treat as approximates
+                        
+                        **These are just notes made from an observation of the model. They are in no way to be used to 
+                        make financial decisions and should not be considered advice**
+                        
+                        ## Logistic Model
+                        - Accurate about 87% (140/167) of the time on new data
+                        - When predicting a recession will occur, accurate about 56% (22/39) of the time on new data
+                        - When predicting a recession will not occur, accurate about 97% (118/122) of the time on new 
+                        data
+                        - When predicting a recession will occur, recession is median 0.9 years away
+                        - When _incorrectly_ predicting a recession will occur, recession is median 1.6 years away
+                        - When there is a recession in the next year, the model will identify it 94% (66/70) of the time 
+                        - If the model gives a 0.9 probability or higher of a recession, accurate about 75% (16/20) of 
+                        the time
+                        
+                        ## Linear Model
+                        - Scores about a 65% on the test data
+                        - When predicting recession in <= 1 years, accurate about 89% (51/57) of the time on new data
+                        - Median difference between years until recession and predicted is -0.55 (model tends to 
+                        overestimate distance)
+                        - Mean difference between years until recession and predicted is -0.29 (model tends to 
+                        overestimate distance)
+                        
+                        
+                        ## Combined Uses
+                        - When linear predicting recession in <= 1 year and prob >= 0.5, accurate about 89% (51/57) of 
+                        the time on new data
+                        - When linear predicting recession in <= 1 year and prob >= 0.8, accurate about 88% (46/52) of 
+                        the time on new data
+                        - When linear predicting recession in <= 1 year and prob >= 0.9, accurate about 86% (37/43) of 
+                        the time on new data
+                        - When linear predicting recession in <= 1 year and prob >= 0.95, accurate about 93% (26/28) of 
+                        the time on new data
+                        - When the logistic model predicts a recession, the linear model agrees just 37% (57/153) of the
+                         time on new data
+                    ''', style={"border": "2px black solid"})
                 ], style=dict(display='flex')
             ),
         ],
         className="container",
-        style={"background-image": 'url("/assets/stock_background_1.png")', "background-position": "left top"}
+        style={"background-image": 'url("/assets/stock_background_1.png")',
+               'background-size': '100%',
+               'width': '100%',
+               'height': '100%'}
     )
 
 
