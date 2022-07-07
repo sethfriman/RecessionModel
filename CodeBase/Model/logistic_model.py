@@ -140,3 +140,16 @@ class RINYModel:
 
     def get_test_indices(self):
         return list(self.X_test.index)
+
+    def make_pred(self, house=0, cpi=0, yd=0, ysr=0):
+        if house == float('NaN'):
+            house = 0
+        if cpi == float('NaN'):
+            house = 0
+        if yd == float('NaN'):
+            house = 0
+        if ysr == float('NaN'):
+            house = 0
+        pred = self.logreg.predict_proba(self.scaler.transform(
+            np.array([house, cpi, yd, int(yd < 0), ysr]).reshape(1, -1)))
+        return round(pred[0][1], 3)

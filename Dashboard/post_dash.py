@@ -9,6 +9,7 @@ import dash
 from dash import dcc
 from dash import html
 from dash import dash_table
+import dash_bootstrap_components as dbc
 import sys
 import pandas as pd
 from dash.dependencies import Input, Output
@@ -19,9 +20,10 @@ from CodeBase.Data.data_viz import Visualizer
 from CodeBase.Model.logistic_model import RINYModel
 from CodeBase.Model.linear_model import YURModel
 
+external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = dash.Dash()
 vis = Visualizer(df=pd.read_csv('total_data.csv', index_col=0))
-# vis.total_data.to_csv('total_data.csv')
+# df=pd.read_csv('total_data.csv', index_col=0)
 
 available_years = list(vis.total_data.date.values)
 available_years = list(set([datetime.datetime.strptime(x, '%Y-%m-%d').year for x in available_years]))
@@ -89,6 +91,8 @@ if __name__ == "__main__":
     yur_rec_pred = (datetime.datetime.strptime(yur_last_date, '%Y-%m-%d') +
                     datetime.timedelta(int(365 * yur_rec_val))).strftime('%Y-%m-%d')
 
+    log_pred = riny.make_pred(0, 0, 0, 0)
+    lin_pred = yur.make_pred(0, 0, 0, 0)
     if riny_rec_val < 0.5:
         likelihood_string = 'low'
     elif yur_rec_val <= 1:
@@ -136,7 +140,8 @@ if __name__ == "__main__":
                     ),
                     html.Div(
                         [
-                            html.H2("Latest Predictions", style={"text-decoration": "underline", "textAlign": "center"}),
+                            html.H2("Latest Predictions",
+                                    style={"text-decoration": "underline", "textAlign": "center"}),
                             html.H4("Logistic Predicts Recession Starting:", style={"textAlign": "center"}),
                             html.H3(riny_rec_pred, style={"textAlign": "center"}),
                             html.Br(),
@@ -224,6 +229,39 @@ if __name__ == "__main__":
                     ''', style={"border": "2px black solid"})
                 ], style=dict(display='flex')
             ),
+            html.Div(
+                [
+                    html.H2("Model Calculator", style={"text-decoration": "underline"}),
+                    html.H4("Customize the boxes below to see how the model operates"),
+                    html.Div(
+                        [
+                            html.Label('1 Year Housing Climb Change',
+                                       style={"font-size": "12px", "margin-left": "7%"}),
+                            html.Label('3 Year CPI Change', style={"font-size": "12px", "margin-left": "4.5%"}),
+                            html.Label('Yield Curve Difference', style={"font-size": "12px", "margin-left": "7%"}),
+                            html.Label('Years Since Recession', style={"font-size": "12px", "margin-left": "6%"})
+                        ], style={"verticalAlign": "middle"}
+                    ),
+                    html.Div(
+                        [
+                            dcc.Input(id='housing-change-input', type="number", value=0,
+                                      style={"width": "5%", "margin-left": "15%"}),
+                            dcc.Input(id='cpi-change-input', type="number", value=0,
+                                      style={"width": "5%", "margin-left": "15%"}),
+                            dcc.Input(id='yield-diff', type="number", value=0,
+                                      style={"width": "5%", "margin-left": "15%"}),
+                            dcc.Input(id='years-since-recession', type="number", value=0,
+                                      style={"width": "5%", "margin-left": "15%"})
+                        ], style={"verticalAlign": "middle"}
+                    ),
+                    html.H3(id="log-pred"),
+                    html.H3(id="lin-pred"),
+                ], style={"border": "2px black solid",
+                          "margin-top": "-25.5%",
+                          "width": "50%",
+                          "margin_left": "2.5%",
+                          "margin_right": "2.5%"},
+            )
         ],
         className="container",
         style={"background-image": 'url("/assets/stock_background_1.png")',
@@ -243,7 +281,18 @@ if __name__ == "__main__":
         fig = vis.makePlot(variables, x=x, start_date=str(year_range[0]) + '-01-01',
                            end_date=str(year_range[1]) + '-12-01')
 
-        return fig
+    @app.callback(
+        Output("log-pred", "children"),
+        Output("lin-pred", "children"),
+        Input("housing-change-input", "value"),
+        Input("cpi-change-input", "value"),
+        Input("yield-diff", "value"),
+        Input("years-since-recession", "value"),
+    )
+    def make_preds(house, cpi, yd, ysr):
+        log_pred = riny.make_pred(house, cpi, yd, ysr)
+        lin_pred = yur.make_pred(house, cpi, yd, ysr)
+        return 'Probability of Recession: ' + str(log_pred), 'Years Until Recession: ' + str(lin_pred)
 
 
     app.run_server(debug=True, host='127.0.0.1')
