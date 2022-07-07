@@ -108,3 +108,15 @@ class YURModel:
             preds_table = preds_table[['date', 'recession_in_next_year', 'years_until_recession', 'yur_pred']]
             preds_df = preds_df.merge(preds_table, on=['date', 'recession_in_next_year'], how='inner')
             return preds_df
+
+    def make_pred(self, house=0, cpi=0, yd=0, ysr=0):
+        if house == float('NaN'):
+            house = 0
+        if cpi == float('NaN'):
+            house = 0
+        if yd == float('NaN'):
+            house = 0
+        if ysr == float('NaN'):
+            house = 0
+        pred = self.linreg.predict(self.scaler.transform(np.array([house, cpi, yd, int(yd < 0), ysr]).reshape(1, -1)))
+        return round(pred[0][0], 3)
