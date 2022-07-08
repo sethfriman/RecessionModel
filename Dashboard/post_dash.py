@@ -102,11 +102,13 @@ if __name__ == "__main__":
     else:
         likelihood_string = 'high'
 
+    most_recent_data = vis.total_data.iloc[-1]
+
     app.layout = html.Div(
         [
-            html.H1("Recession Tracker Dashboard"),
-            html.H3('Created By: Seth Friman'),
-            html.H4('Beta Version'),
+            html.H1("Recession Tracker Dashboard", style={"margin-left": "1%"}),
+            html.H3('Created By: Seth Friman', style={"margin-left": "1%"}),
+            html.H4('Beta Version', style={"margin-left": "1%"}),
             html.Div(
                 [
                     html.Div(
@@ -231,8 +233,9 @@ if __name__ == "__main__":
             ),
             html.Div(
                 [
-                    html.H2("Model Calculator", style={"text-decoration": "underline"}),
-                    html.H4("Customize the boxes below to see how the model operates"),
+                    html.H2("Model Calculator", style={"text-decoration": "underline", "margin-left": "1%"}),
+                    html.H4("Customize the boxes below to see how the model operates. Have some fun with it!",
+                            style={"margin-left": "1%"}),
                     html.Div(
                         [
                             html.Label('1 Year Housing Climb Change',
@@ -254,13 +257,24 @@ if __name__ == "__main__":
                                       style={"width": "5%", "margin-left": "15%"})
                         ], style={"verticalAlign": "middle"}
                     ),
-                    html.H3(id="log-pred"),
-                    html.H3(id="lin-pred"),
+                    html.Div(
+                        [
+                            html.Label('Current Value: ' + str(round(most_recent_data['housing_climb_change'], 3)),
+                                       style={"font-size": "12px", "margin-left": "11%"}),
+                            html.Label('Current Value: ' + str(round(most_recent_data['36_mo_cpi_change_all'], 3)),
+                                       style={"font-size": "12px", "margin-left": "7%"}),
+                            html.Label('Current Value: ' + str(round(most_recent_data['yield_diff'], 3)),
+                                       style={"font-size": "12px", "margin-left": "7%"}),
+                            html.Label('Current Value: ' + str(round(most_recent_data['years_since_recession'], 3)),
+                                       style={"font-size": "12px", "margin-left": "7%"})
+                        ], style={"verticalAlign": "middle"}
+                    ),
+                    html.H3(id="log-pred", style={"margin-left": "1%"}),
+                    html.H3(id="lin-pred", style={"margin-left": "1%"}),
                 ], style={"border": "2px black solid",
-                          "margin-top": "-25.5%",
+                          "margin-top": "-25%",
                           "width": "50%",
-                          "margin_left": "2.5%",
-                          "margin_right": "2.5%"},
+                          "margin-left": "1%"},
             )
         ],
         className="container",
@@ -280,6 +294,7 @@ if __name__ == "__main__":
     def update_figure(variables, x, year_range):
         fig = vis.makePlot(variables, x=x, start_date=str(year_range[0]) + '-01-01',
                            end_date=str(year_range[1]) + '-12-01')
+        return fig
 
     @app.callback(
         Output("log-pred", "children"),
@@ -290,6 +305,14 @@ if __name__ == "__main__":
         Input("years-since-recession", "value"),
     )
     def make_preds(house, cpi, yd, ysr):
+        if house is None:
+            house = 0
+        if cpi is None:
+            cpi = 0
+        if yd is None:
+            yd = 0
+        if ysr is None:
+            ysr = 0
         log_pred = riny.make_pred(house, cpi, yd, ysr)
         lin_pred = yur.make_pred(house, cpi, yd, ysr)
         return 'Probability of Recession: ' + str(log_pred), 'Years Until Recession: ' + str(lin_pred)

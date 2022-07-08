@@ -44,6 +44,7 @@ class Visualizer:
 
         fig.add_hline(y=horiz_line_height, line_color='black', line_dash='dash')
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)")
+        fig.update_layout(hovermode="x")
         return fig
 
     # Creates a histogram to show the distribution of data for a given feature among different labels
