@@ -2,6 +2,7 @@
 import datetime
 import plotly.express as px
 import CodeBase.Data.get_data as get_data
+from plotly.subplots import make_subplots
 
 recession_starts = ['1960-04-01', '1969-12-01', '1973-11-01', '1980-01-01', '1981-07-01',
                     '1990-07-01', '2001-03-01', '2007-12-01', '2020-02-01']
@@ -48,25 +49,63 @@ class Visualizer:
         return fig
 
     # Creates a histogram to show the distribution of data for a given feature among different labels
-    def histPlot(self, feature, binary):
-        cropped_data = self.total_data[self.total_data['in_recession'] == 0]
-        fig = px.histogram(cropped_data, x=feature, color=binary,
+    def histPlot(self, feature, binary, start_date='1968-01-01',
+                 end_date=datetime.datetime.today().strftime('%Y-%m-%d'), in_rec=0):
+        if (in_rec is None) | (in_rec == []):
+            cropped_data = self.total_data[self.total_data['in_recession'] == 0]
+            cropped_data = cropped_data[(cropped_data['date'] >= start_date) & (cropped_data['date'] <= end_date)]
+        else:
+            cropped_data = self.total_data[(self.total_data['date'] >= start_date) &
+                                           (self.total_data['date'] <= end_date)]
+        if len(feature) > 1:
+            cropped_data = (cropped_data-cropped_data.mean())/cropped_data.std()
+            cropped_data['combined_feature'] = cropped_data[feature[0]] * cropped_data[feature[1]]
+            for i in range(2, len(feature)):
+                cropped_data['combined_feature'] = cropped_data['combined_feature'] * cropped_data[feature[i]]
+            to_plot = 'combined_feature'
+        else:
+            to_plot = feature[0]
+        fig = px.histogram(cropped_data, x=to_plot, color=binary,
                            labels={
-                               feature: feature.replace('_', ' ').title(),
+                               to_plot: to_plot.replace('_', ' ').title(),
                                binary: binary.replace('_', ' ').title()
                            },
-                           title='Distribution of ' + feature.replace('_', ' ').title() + ' by ' +
+                           title='Distribution of ' + to_plot.replace('_', ' ').title() + ' by ' +
                                  binary.replace('_', ' ').title(), opacity=0.5, barmode="overlay")
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)")
+        return fig
+
+    def soloHist(self, feature, start_date='1968-01-01',
+                 end_date=datetime.datetime.today().strftime('%Y-%m-%d'), in_rec=0):
+        if (in_rec is None) | (in_rec == []):
+            cropped_data = self.total_data[self.total_data['in_recession'] == 0]
+            cropped_data = cropped_data[(cropped_data['date'] >= start_date) & (cropped_data['date'] <= end_date)]
+        else:
+            cropped_data = self.total_data[(self.total_data['date'] >= start_date) &
+                                           (self.total_data['date'] <= end_date)]
+        fig = px.histogram(cropped_data, x=feature,
+                           labels={
+                               feature: feature.replace('_', ' ').title()
+                           },
+                           title='Distribution of ' + feature.replace('_', ' ').title())
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)")
         return fig
 
     # Creates a scatter plot to show the distribution of data for a given feature among a dependent variable
-    def scatPlot(self, feature, dependent):
-        cropped_data = self.total_data[self.total_data['in_recession'] == 0]
-        fig = px.scatter(cropped_data, x=feature, y=dependent,
-                         labels={
-                             feature: feature.replace('_', ' ').title(),
-                             dependent: dependent.replace('_', ' ').title()
-                         },
-                         title='Distribution of ' + feature.replace('_', ' ').title() + ' by ' +
-                               dependent.replace('_', ' ').title())
+    def scatPlot(self, y, x, start_date='1968-01-01', end_date=datetime.datetime.today().strftime('%Y-%m-%d'),
+                 in_rec=0):
+        if (in_rec is None) | (in_rec == []):
+            cropped_data = self.total_data[self.total_data['in_recession'] == 0]
+            cropped_data = cropped_data[(cropped_data['date'] >= start_date) & (cropped_data['date'] <= end_date)]
+        else:
+            cropped_data = self.total_data[(self.total_data['date'] >= start_date) &
+                                           (self.total_data['date'] <= end_date)]
+
+        labels = {x: x.replace('_', ' ').title()}
+
+        fig = px.scatter(cropped_data, x=x, y=y,
+                         labels=labels)
+        fig.update_layout(title={"text": "Variable Visualization Chart", "y": 0.9})
+        fig.update_layout(paper_bgcolor="rgba(0,0,0,0)")
+        fig.add_hline(y=0, line_color='black', line_dash='dash')
         return fig
