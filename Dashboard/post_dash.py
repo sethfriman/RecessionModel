@@ -1,5 +1,6 @@
 # This file will be where the dashboard is deployed from
 import argparse
+import os
 import pickle
 import warnings
 
@@ -7,11 +8,8 @@ warnings.filterwarnings("ignore")
 import dash
 from dash import dcc
 from dash import html
-from dash import dash_table
 import sys
 import pandas as pd
-from dash.dependencies import Input, Output
-import datetime
 
 sys.path.append("../")
 from CodeBase.Data.data_viz import Visualizer
@@ -19,8 +17,7 @@ from CodeBase.Model.logistic_model import RINYModel
 from CodeBase.Model.linear_model import YURModel
 
 app = dash.Dash(__name__, use_pages=True)
-vis = Visualizer(df=pd.read_csv('total_data.csv', index_col=0))
-# df=pd.read_csv('total_data.csv', index_col=0)
+vis = Visualizer(df=pd.read_csv('../CodeBase/Data/total_data.csv', index_col=0))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()

@@ -8,6 +8,8 @@ import requests
 from bs4 import BeautifulSoup
 from fredapi import Fred
 import pandas as pd
+import warnings
+warnings.filterwarnings('ignore')
 
 fred_api_key = os.environ.get("FRED_TOKEN")
 fred = Fred(api_key=fred_api_key)
@@ -34,6 +36,7 @@ def get_unemp_table():
         change = (unemp.at[i, 'un_rate'] - unemp.at[i - 12, 'un_rate'])
         unemp.at[i, '12_mo_unemp_change'] = change
     unemp = unemp[unemp['date'] >= '1968-01-01'].reset_index(drop=True)
+    print('Unemp Table Most Recent: ', unemp.iloc[-1]['date'])
     return unemp
 
 
@@ -56,6 +59,7 @@ def get_mhp_table():
         mhp.at[i, 'housing_climb_change'] = value_change
 
     mhp = mhp[mhp['date'] >= '1968-01-01'].reset_index(drop=True)
+    print('MHP Table Most Recent: ', mhp.iloc[-1]['date'])
     return mhp
 
 
@@ -84,6 +88,7 @@ def get_cpi_table():
         cpi.at[i, '36_mo_cpi_change_all'] = change
 
     cpi = cpi[cpi['date'] >= '1968-01-01'].reset_index(drop=True)
+    print('CPI Table Most Recent: ', cpi.iloc[-1]['date'])
     return cpi
 
 
@@ -119,6 +124,7 @@ def get_sp_table():
         sp.at[i, 'pct_bimonthly_sp_change'] = bi_pct_change
 
     sp = sp[sp['date'] >= '1968-01-01'].reset_index(drop=True)
+    print('S&P Table Most Recent: ', sp.iloc[-1]['date'])
     return sp
 
 
@@ -149,6 +155,7 @@ def get_yield_table():
     total_yield = yield_ten.merge(yield_one, how='inner', on='date')
     total_yield['yield_diff'] = total_yield['ten_yr_yield'] - total_yield['one_yr_yield']
     total_yield['yield_below_zero'] = (total_yield['yield_diff'] < 0).astype(int)
+    print('Yield Table Most Recent: ', total_yield.iloc[-1]['date'])
     return total_yield
 
 
@@ -226,7 +233,7 @@ def get_total_table():
 
     total_data = get_unemp_table().merge(get_mhp_table(), how='inner', on='date')
     total_data = total_data.merge(get_cpi_table(), how='inner', on='date')
-    total_data = total_data.merge(get_sp_table(), how='inner', on='date')
+    total_data = total_data.merge(get_sp_table(), how='left', on='date')
     total_data = total_data.merge(get_yield_table(), how='inner', on='date')
 
     total_data['years_since_recession'] = YSRVect(total_data.date.values)
@@ -235,3 +242,8 @@ def get_total_table():
     total_data['in_recession'] = IRVect(total_data.date.values)
     total_data.to_csv('total_data.csv')
     return total_data
+
+
+if __name__ == "__main__":
+    total_data = get_total_table()
+    total_data.to_csv('total_data.csv')

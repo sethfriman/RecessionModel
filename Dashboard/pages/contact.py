@@ -4,9 +4,6 @@ import smtplib, ssl
 
 dash.register_page(__name__)
 
-output_text = ""
-successColor = "green"
-
 layout = html.Div(
     [
         html.Div(
@@ -99,32 +96,34 @@ layout = html.Div(
     Input('send-contact', 'n_clicks'),
 )
 def contact(email, name, drop, message, clicks):
-    port = 465  # For SSL
-    sender_email = email
-    receiver_email = '<your email address here>'
-
-    # Create a secure SSL context
-    context = ssl.create_default_context()
 
     if clicks > 0:
         try:
-            # with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            #     server.login("<you email address here>", '<you email password here>')
-            #     server.sendmail(sender_email, receiver_email, message)
-            #     server.quit()
+            host = "localhost"
+            server = smtplib.SMTP(host)
+            FROM = email
+            TO = "recessionmodel@gmail.com"
+            MSG = drop + ": " + message
+            server.sendmail(FROM, TO, MSG)
+            server.quit()
+            email_send = True
+        except Exception as e:
+            print(e)
+            email_send = False
+        if email_send:
             return [html.Button('Send Message', id='send-contact', n_clicks=0,
                                 style={"backgroundColor": "blue", 'color': "white",
                                        "margin-left": "43%", "margin-top": "5%", "margin-bottom": "5%",
                                        "border-radius": "6px"})], \
                    [html.Div("Thanks for contacting! Message sent successfully!",
                              style={"color": "green"})], '', '', '', ''
-        except:
+        else:
             return [html.Button('Send Message', id='send-contact', n_clicks=0,
                                 style={"backgroundColor": "blue", 'color': "white",
                                        "margin-left": "43%", "margin-top": "5%", "margin-bottom": "5%",
                                        "border-radius": "6px"})], \
                    [html.Div("Message unable to send. Please Make sure all fields were entered correctly",
-                             style={"color": "red"})], email, name, drop, message
+                                 style={"color": "red"})], email, name, drop, message
     else:
         return [html.Button('Send Message', id='send-contact', n_clicks=0,
                             style={"backgroundColor": "blue", 'color': "white",

@@ -15,11 +15,8 @@ from CodeBase.Data import get_data
 
 class RINYModel:
 
-    def __init__(self, total_data=None, train_indices=None, test_indices=None, model=None, scaler=None):
-        if total_data is None:
-            self.total_data = get_data.get_total_table()
-        else:
-            self.total_data = total_data
+    def __init__(self, total_data, train_indices=None, test_indices=None, model=None, scaler=None):
+        self.total_data = total_data
         self.riny_columns = ['date', 'housing_climb_change', '36_mo_cpi_change_all',
                              'yield_diff', 'yield_below_zero', 'years_since_recession', 'years_until_recession',
                              'recession_in_next_year']
