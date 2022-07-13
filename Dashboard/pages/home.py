@@ -12,7 +12,7 @@ from CodeBase.Model.linear_model import YURModel
 
 dash.register_page(__name__, path='/')
 
-vis = Visualizer(df=pd.read_csv('total_data.csv', index_col=0))
+vis = Visualizer(df=pd.read_csv('../CodeBase/Data/total_data.csv', index_col=0))
 
 riny_model = pickle.load(open('../CodeBase/Model/saved_models/riny_model.sav', 'rb'))
 riny_scaler = pickle.load(open('../CodeBase/Model/saved_models/riny_scaler.sav', 'rb'))
@@ -229,7 +229,7 @@ layout = html.Div(
                 html.H3(id="log-pred", style={"margin-left": "1%"}),
                 html.H3(id="lin-pred", style={"margin-left": "1%"}),
             ], style={"border": "2px black solid",
-                      "margin-top": "-25%",
+                      "margin-top": "-23%",
                       "width": "50%",
                       "margin-left": "1%"}
         ),

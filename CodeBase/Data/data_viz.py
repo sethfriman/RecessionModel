@@ -13,10 +13,7 @@ recession_ends = ['1961-02-01', '1970-11-01', '1975-03-01', '1980-07-01', '1982-
 class Visualizer:
 
     def __init__(self, df=None):
-        if df is None:
-            self.total_data = get_data.get_total_table()
-        else:
-            self.total_data = df
+        self.total_data = df
 
     def makePlot(self, y, x='date', start_date='1968-01-01', end_date=datetime.datetime.today().strftime('%Y-%m-%d'),
                  df=None, horiz_line_height=0):
@@ -28,8 +25,6 @@ class Visualizer:
             labels[it] = it.replace('_', ' ').title()
         fig = px.line(subdata, x=x, y=y, labels=labels)
         fig.update_layout(title={"text": "Variable Visualization Chart", "y": 0.9})
-        # for i in range(1, len(y)):
-        #     fig.add_trace(px.line(subdata, x=x, y=y[i]))
 
         # Shade the regions during a recession
         if x == 'date':
@@ -42,6 +37,7 @@ class Visualizer:
                                         year_before_start[2]
                     fig.add_vrect(x0=year_before_start, x1=recession_starts[i], line_width=0, fillcolor="yellow",
                                   opacity=0.5)
+            fig.update_layout(xaxis_title="Date - Gray: Recession, Yellow: Year Before")
 
         fig.add_hline(y=horiz_line_height, line_color='black', line_dash='dash')
         fig.update_layout(paper_bgcolor="rgba(0,0,0,0)")
