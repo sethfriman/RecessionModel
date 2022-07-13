@@ -70,7 +70,7 @@ if __name__ == "__main__":
             html.Div(
                 [
                     dcc.Link(
-                        "Home", href='/home', style={"margin-left": "1%", "margin-right": "1%",
+                        "Home", href='/', style={"margin-left": "1%", "margin-right": "1%",
                                                      "font-weight": "bold", "color": "white",
                                                      'font-size': "30px", "width": "20%"}
                     ),

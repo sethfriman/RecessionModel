@@ -10,7 +10,7 @@ from CodeBase.Data.data_viz import Visualizer
 from CodeBase.Model.logistic_model import RINYModel
 from CodeBase.Model.linear_model import YURModel
 
-dash.register_page(__name__)
+dash.register_page(__name__, path='/')
 
 vis = Visualizer(df=pd.read_csv('total_data.csv', index_col=0))
 
@@ -61,6 +61,7 @@ most_recent_data = vis.total_data.iloc[-1]
 
 layout = html.Div(
     [
+        dcc.Markdown('For variable descriptions click [here](/data-description)', style={"margin-top": "8%"}),
         html.Div(
             [
                 html.Div(
@@ -77,7 +78,7 @@ layout = html.Div(
                             multi=True,
                             persistence=True
                         )
-                    ], style={"width": '25%', "margin-top": "17%", 'zIndex': 2147483647}
+                    ], style={"width": '25%', 'zIndex': 2147483647}
                 ),
                 html.Div(
                     [
@@ -92,7 +93,7 @@ layout = html.Div(
                             className="dropdown",
                             persistence=True
                         )
-                    ], style={"width": '25%', "margin-top": "17%", 'zIndex': 2147483647}
+                    ], style={"width": '25%', 'zIndex': 2147483647}
                 ),
                 html.Div(
                     [
@@ -103,7 +104,7 @@ layout = html.Div(
                         html.Br(),
                         html.H4("Linear Predicts Recession Starting:", style={"textAlign": "center"}),
                         html.H3(yur_rec_pred, style={"textAlign": "center"}),
-                    ], style={"margin-left": "0.5%", "border": "2px black solid"}
+                    ], style={"margin-left": "0.5%", "border": "2px black solid", "margin-top": "-17%"}
                 ),
                 html.Div(
                     [
@@ -118,11 +119,11 @@ layout = html.Div(
                             *Current scores indicate a **''' + likelihood_string + '''** likelihood of a recession 
                             within the next year*
                         '''),
-                    ], style={"margin-left": "0.5%", "border": "2px black solid", "width": '30%'}
+                    ], style={"margin-left": "0.5%", "border": "2px black solid", "width": '30%', "margin-top": "-17%"}
                 ),
             ],
             className="row",
-            style={"display": 'flex', "margin-top": "-6%"}
+            style={"display": 'flex'}
         ),
         dcc.Checklist([{"label": 'Include Data During Recessions ' +
                                  '(Notes: Model does not look at this data, line plots include this data regardless)',
@@ -189,27 +190,28 @@ layout = html.Div(
         html.Div(
             [
                 html.H2("Model Calculator", style={"text-decoration": "underline", "margin-left": "1%"}),
-                html.H4("Customize the boxes below to see how the model operates. Have some fun with it!",
-                        style={"margin-left": "1%"}),
+                dcc.Markdown("#### Customize the boxes below to see how the model operates. Have some fun with it! ["
+                             "Data Descriptions](/data-description)",
+                             style={"margin-left": "1%"}),
                 html.Div(
                     [
                         html.Label('1 Year Housing Climb Change',
                                    style={"font-size": "12px", "margin-left": "7%"}),
-                        html.Label('3 Year CPI Change', style={"font-size": "12px", "margin-left": "4.5%"}),
-                        html.Label('Yield Curve Difference', style={"font-size": "12px", "margin-left": "7%"}),
-                        html.Label('Years Since Recession', style={"font-size": "12px", "margin-left": "6%"})
+                        html.Label('3 Year CPI Change', style={"font-size": "12px", "margin-left": "5.5%"}),
+                        html.Label('Yield Curve Difference', style={"font-size": "12px", "margin-left": "8%"}),
+                        html.Label('Years Since Recession', style={"font-size": "12px", "margin-left": "7%"})
                     ], style={"verticalAlign": "middle"}
                 ),
                 html.Div(
                     [
                         dcc.Input(id='housing-change-input', type="number", value=0,
-                                  style={"width": "5%", "margin-left": "15%"}, persistence=True),
+                                  style={"width": "7%", "margin-left": "14%"}, persistence=True),
                         dcc.Input(id='cpi-change-input', type="number", value=0,
-                                  style={"width": "5%", "margin-left": "15%"}, persistence=True),
+                                  style={"width": "7%", "margin-left": "14%"}, persistence=True),
                         dcc.Input(id='yield-diff', type="number", value=0,
-                                  style={"width": "5%", "margin-left": "15%"}, persistence=True),
+                                  style={"width": "7%", "margin-left": "14%"}, persistence=True),
                         dcc.Input(id='years-since-recession', type="number", value=0,
-                                  style={"width": "5%", "margin-left": "15%"}, persistence=True)
+                                  style={"width": "7%", "margin-left": "14%"}, persistence=True)
                     ], style={"verticalAlign": "middle"}
                 ),
                 html.Div(
@@ -217,11 +219,11 @@ layout = html.Div(
                         html.Label('Current Value: ' + str(round(most_recent_data['housing_climb_change'], 3)),
                                    style={"font-size": "12px", "margin-left": "11%"}),
                         html.Label('Current Value: ' + str(round(most_recent_data['36_mo_cpi_change_all'], 3)),
-                                   style={"font-size": "12px", "margin-left": "7%"}),
+                                   style={"font-size": "12px", "margin-left": "8%"}),
                         html.Label('Current Value: ' + str(round(most_recent_data['yield_diff'], 3)),
-                                   style={"font-size": "12px", "margin-left": "7%"}),
+                                   style={"font-size": "12px", "margin-left": "8%"}),
                         html.Label('Current Value: ' + str(round(most_recent_data['years_since_recession'], 3)),
-                                   style={"font-size": "12px", "margin-left": "7%"})
+                                   style={"font-size": "12px", "margin-left": "8%"})
                     ], style={"verticalAlign": "middle"}
                 ),
                 html.H3(id="log-pred", style={"margin-left": "1%"}),
