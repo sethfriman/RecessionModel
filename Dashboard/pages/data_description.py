@@ -7,7 +7,7 @@ layout = html.Div(children=[
     html.H1(children='This is our Data Description page'),
 
     html.Div(children='''
-        This is our Home page content.
+        Coming Soon
     '''),
 
 ])

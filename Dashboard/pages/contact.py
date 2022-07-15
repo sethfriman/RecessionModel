@@ -1,6 +1,10 @@
+import os
+import traceback
+
 import dash
 from dash import html, dcc, callback, Input, Output
 import smtplib, ssl
+from email.mime.text import MIMEText
 
 dash.register_page(__name__)
 
@@ -98,17 +102,23 @@ layout = html.Div(
 def contact(email, name, drop, message, clicks):
 
     if clicks > 0:
-        try:
-            host = "localhost"
-            server = smtplib.SMTP(host)
-            FROM = email
-            TO = "recessionmodel@gmail.com"
-            MSG = drop + ": " + message
-            server.sendmail(FROM, TO, MSG)
-            server.quit()
-            email_send = True
-        except Exception as e:
-            print(e)
+        if (email is not None) & (name is not None) & (drop is not None) & (message is not None):
+            try:
+                msg = MIMEText(message)
+                msg['From'] = email
+                msg['To'] = "recessionmodel@outlook.com"
+                msg['Subject'] = name + ' -  ' + drop
+                mailserver = smtplib.SMTP('smtp-mail.outlook.com', 587)
+                mailserver.ehlo()
+                mailserver.starttls()
+                mailserver.login("recessionmodel@outlook.com", os.environ.get('EMAIL_PASS'))
+                mess = msg.as_string()[msg.as_string().index('From: '):]
+                mailserver.sendmail("recessionmodel@outlook.com", "recessionmodel@outlook.com", '\n' + mess)
+                mailserver.quit()
+                email_send = True
+            except Exception:
+                email_send = False
+        else:
             email_send = False
         if email_send:
             return [html.Button('Send Message', id='send-contact', n_clicks=0,
