@@ -2,24 +2,21 @@ import pickle
 import dash
 import pandas as pd
 from dash import html, dcc, callback, Input, Output, dash_table
-import sys
 import datetime
-
-sys.path.append("../")
 from CodeBase.Data.data_viz import Visualizer
 from CodeBase.Model.logistic_model import RINYModel
 from CodeBase.Model.linear_model import YURModel
 
 dash.register_page(__name__, path='/')
 
-vis = Visualizer(df=pd.read_csv('../CodeBase/Data/total_data.csv', index_col=0))
+vis = Visualizer(df=pd.read_csv('CodeBase/Data/total_data.csv', index_col=0))
 
-riny_model = pickle.load(open('../CodeBase/Model/saved_models/riny_model.sav', 'rb'))
-riny_scaler = pickle.load(open('../CodeBase/Model/saved_models/riny_scaler.sav', 'rb'))
+riny_model = pickle.load(open('CodeBase/Model/saved_models/riny_model.sav', 'rb'))
+riny_scaler = pickle.load(open('CodeBase/Model/saved_models/riny_scaler.sav', 'rb'))
 riny = RINYModel(vis.total_data, model=riny_model, scaler=riny_scaler)
 
-yur_model = pickle.load(open('../CodeBase/Model/saved_models/yur_model.sav', 'rb'))
-yur_scaler = pickle.load(open('../CodeBase/Model/saved_models/yur_scaler.sav', 'rb'))
+yur_model = pickle.load(open('CodeBase/Model/saved_models/yur_model.sav', 'rb'))
+yur_scaler = pickle.load(open('CodeBase/Model/saved_models/yur_scaler.sav', 'rb'))
 yur = YURModel(vis.total_data, train_indices=riny.get_train_indices(),
                test_indices=riny.get_test_indices(), model=yur_model, scaler=yur_scaler)
 

@@ -9,9 +9,12 @@ from bs4 import BeautifulSoup
 from fredapi import Fred
 import pandas as pd
 import warnings
+from dotenv import load_dotenv
 warnings.filterwarnings('ignore')
 
-fred_api_key = os.environ.get("FRED_TOKEN")
+
+load_dotenv()
+fred_api_key = os.getenv('FREDapiKey')
 fred = Fred(api_key=fred_api_key)
 
 recession_starts = ['1960-04-01', '1969-12-01', '1973-11-01', '1980-01-01', '1981-07-01',

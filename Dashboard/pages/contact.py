@@ -1,10 +1,11 @@
 import os
-import traceback
-
 import dash
 from dash import html, dcc, callback, Input, Output
-import smtplib, ssl
+import smtplib
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
+
+load_dotenv()
 
 dash.register_page(__name__)
 
@@ -111,7 +112,7 @@ def contact(email, name, drop, message, clicks):
                 mailserver = smtplib.SMTP('smtp-mail.outlook.com', 587)
                 mailserver.ehlo()
                 mailserver.starttls()
-                mailserver.login("recessionmodel@outlook.com", os.environ.get('EMAIL_PASS'))
+                mailserver.login("recessionmodel@outlook.com", os.getenv('sendEmailKey'))
                 mess = msg.as_string()[msg.as_string().index('From: '):]
                 mailserver.sendmail("recessionmodel@outlook.com", "recessionmodel@outlook.com", '\n' + mess)
                 mailserver.quit()

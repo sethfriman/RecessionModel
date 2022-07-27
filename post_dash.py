@@ -1,6 +1,5 @@
 # This file will be where the dashboard is deployed from
 import argparse
-import os
 import pickle
 import warnings
 
@@ -8,16 +7,17 @@ warnings.filterwarnings("ignore")
 import dash
 from dash import dcc
 from dash import html
-import sys
 import pandas as pd
 
-sys.path.append("../")
 from CodeBase.Data.data_viz import Visualizer
 from CodeBase.Model.logistic_model import RINYModel
 from CodeBase.Model.linear_model import YURModel
 
-app = dash.Dash(__name__, use_pages=True)
-vis = Visualizer(df=pd.read_csv('../CodeBase/Data/total_data.csv', index_col=0))
+
+app = dash.Dash(__name__, use_pages=True, pages_folder="Dashboard/pages", assets_folder="Dashboard/assets")
+server = app.server
+
+vis = Visualizer(df=pd.read_csv('CodeBase/Data/total_data.csv', index_col=0))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -31,36 +31,36 @@ if __name__ == "__main__":
 
     if args.rinymodel == 'load':
         try:
-            riny_model = pickle.load(open('../CodeBase/Model/saved_models/riny_model.sav', 'rb'))
-            riny_scaler = pickle.load(open('../CodeBase/Model/saved_models/riny_scaler.sav', 'rb'))
+            riny_model = pickle.load(open('CodeBase/Model/saved_models/riny_model.sav', 'rb'))
+            riny_scaler = pickle.load(open('CodeBase/Model/saved_models/riny_scaler.sav', 'rb'))
             riny = RINYModel(vis.total_data, model=riny_model, scaler=riny_scaler)
         except FileNotFoundError:
             print('Could not load RINY model, creating new one')
             riny = RINYModel(vis.total_data)
-            pickle.dump(riny.logreg, open('../CodeBase/Model/saved_models/riny_model.sav', 'wb'))
-            pickle.dump(riny.scaler, open('../CodeBase/Model/saved_models/riny_scaler.sav', 'wb'))
+            pickle.dump(riny.logreg, open('CodeBase/Model/saved_models/riny_model.sav', 'wb'))
+            pickle.dump(riny.scaler, open('CodeBase/Model/saved_models/riny_scaler.sav', 'wb'))
     else:
         riny = RINYModel(vis.total_data)
-        pickle.dump(riny.logreg, open('../CodeBase/Model/saved_models/riny_model.sav', 'wb'))
-        pickle.dump(riny.scaler, open('../CodeBase/Model/saved_models/riny_scaler.sav', 'wb'))
+        pickle.dump(riny.logreg, open('CodeBase/Model/saved_models/riny_model.sav', 'wb'))
+        pickle.dump(riny.scaler, open('CodeBase/Model/saved_models/riny_scaler.sav', 'wb'))
 
     if args.yurmodel == 'load':
         try:
-            yur_model = pickle.load(open('../CodeBase/Model/saved_models/yur_model.sav', 'rb'))
-            yur_scaler = pickle.load(open('../CodeBase/Model/saved_models/yur_scaler.sav', 'rb'))
+            yur_model = pickle.load(open('CodeBase/Model/saved_models/yur_model.sav', 'rb'))
+            yur_scaler = pickle.load(open('CodeBase/Model/saved_models/yur_scaler.sav', 'rb'))
             yur = YURModel(vis.total_data, train_indices=riny.get_train_indices(),
                            test_indices=riny.get_test_indices(), model=yur_model, scaler=yur_scaler)
         except FileNotFoundError:
             print('Could not load YUR model, creating new one')
             yur = YURModel(vis.total_data, train_indices=riny.get_train_indices(),
                            test_indices=riny.get_test_indices())
-            pickle.dump(yur.linreg, open('../CodeBase/Model/saved_models/yur_model.sav', 'wb'))
-            pickle.dump(yur.scaler, open('../CodeBase/Model/saved_models/yur_scaler.sav', 'wb'))
+            pickle.dump(yur.linreg, open('CodeBase/Model/saved_models/yur_model.sav', 'wb'))
+            pickle.dump(yur.scaler, open('CodeBase/Model/saved_models/yur_scaler.sav', 'wb'))
     else:
         yur = YURModel(vis.total_data, train_indices=riny.get_train_indices(),
                        test_indices=riny.get_test_indices())
-        pickle.dump(yur.linreg, open('../CodeBase/Model/saved_models/yur_model.sav', 'wb'))
-        pickle.dump(yur.scaler, open('../CodeBase/Model/saved_models/yur_scaler.sav', 'wb'))
+        pickle.dump(yur.linreg, open('CodeBase/Model/saved_models/yur_model.sav', 'wb'))
+        pickle.dump(yur.scaler, open('CodeBase/Model/saved_models/yur_scaler.sav', 'wb'))
 
     app.layout = html.Div(
         [
@@ -97,4 +97,4 @@ if __name__ == "__main__":
                "max-width": "1462px"}
     )
 
-    app.run_server(debug=True, host='127.0.0.1')
+    app.server.run(debug=True)
