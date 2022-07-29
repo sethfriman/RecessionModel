@@ -108,7 +108,7 @@ layout = html.Div(
                         html.H2("Main Takeaways / Usability", style={"text-decoration": "underline",
                                                                      "textAlign": "center"}),
                         dcc.Markdown('''
-                            - If the logistic model says there will not be a recession in the next year, there won't be 
+                            - If the logistic model says there will not be a recession in the next year, there probably won't be 
                             - If there is a recession in the next year, the logistic model will most likely spot it 
                             - Pay close attention to economy if logistic model prob hits 0.9 or higher 
                             - If the linear model model predicts less than a year, there will most likely be a recession 
@@ -226,7 +226,7 @@ layout = html.Div(
                 html.H3(id="log-pred", style={"margin-left": "1%"}),
                 html.H3(id="lin-pred", style={"margin-left": "1%"}),
             ], style={"border": "2px black solid",
-                      "margin-top": "-23%",
+                      "margin-top": "-21%",
                       "width": "50%",
                       "margin-left": "1%"}
         ),

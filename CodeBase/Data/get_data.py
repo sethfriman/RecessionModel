@@ -1,4 +1,4 @@
-# This file will contain methods for getting all of the data used in the model
+# This file contains methods for getting all of the data used in the model
 import datetime
 import io
 import os
@@ -40,6 +40,9 @@ def get_unemp_table():
         unemp.at[i, '12_mo_unemp_change'] = change
     unemp = unemp[unemp['date'] >= '1968-01-01'].reset_index(drop=True)
     print('Unemp Table Most Recent: ', unemp.iloc[-1]['date'])
+    unemp = unemp.merge(get_using_dates(), how='right', on='date')
+    unemp['12_mo_unemp_change'] = unemp['12_mo_unemp_change'].fillna(method='bfill').fillna(method='ffill')
+    unemp['un_rate'] = unemp['un_rate'].fillna(method='bfill').fillna(method='ffill')
     return unemp
 
 
@@ -92,6 +95,10 @@ def get_cpi_table():
 
     cpi = cpi[cpi['date'] >= '1968-01-01'].reset_index(drop=True)
     print('CPI Table Most Recent: ', cpi.iloc[-1]['date'])
+    cpi = cpi.merge(get_using_dates(), how='right', on='date')
+    cpi['36_mo_cpi_change_all'] = cpi['36_mo_cpi_change_all'].fillna(method='bfill').fillna(method='ffill')
+    cpi['cpi_change_all'] = cpi['cpi_change_all'].fillna(method='bfill').fillna(method='ffill')
+    cpi['cpi_change_less_food_and_energy'] = cpi['cpi_change_less_food_and_energy'].fillna(method='bfill').fillna(method='ffill')
     return cpi
 
 

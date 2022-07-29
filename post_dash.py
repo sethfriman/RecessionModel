@@ -1,5 +1,6 @@
 # This file will be where the dashboard is deployed from
 import argparse
+import os
 import pickle
 import warnings
 
@@ -97,4 +98,4 @@ if __name__ == "__main__":
                "max-width": "1462px"}
     )
 
-    app.server.run(debug=True)
+    app.run_server(host='0.0.0.0', port=8050, debug=True)
