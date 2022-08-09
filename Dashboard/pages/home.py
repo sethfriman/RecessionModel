@@ -96,19 +96,21 @@ layout = html.Div(
                     [
                         html.H2("Latest Predictions",
                                 style={"text-decoration": "underline", "textAlign": "center"}),
-                        html.H4("Logistic Predicts Recession Starting:", style={"textAlign": "center"}),
+                        html.H4("Logistic Predicts Recession By:", style={"textAlign": "center"}),
                         html.H3(riny_rec_pred, style={"textAlign": "center"}),
                         html.Br(),
-                        html.H4("Linear Predicts Recession Starting:", style={"textAlign": "center"}),
+                        html.H4("Linear Predicts Recession By:", style={"textAlign": "center"}),
                         html.H3(yur_rec_pred, style={"textAlign": "center"}),
-                    ], style={"margin-left": "0.5%", "border": "2px black solid", "margin-top": "-17%"}
+                    ], style={"margin-left": "0.5%", "border": "2px black solid", "margin-top": "-17%",
+                              "width": "250px"}
                 ),
                 html.Div(
                     [
                         html.H2("Main Takeaways / Usability", style={"text-decoration": "underline",
                                                                      "textAlign": "center"}),
                         dcc.Markdown('''
-                            - If the logistic model says there will not be a recession in the next year, there probably won't be 
+                            - If the logistic model says there will not be a recession in the next year, there probably 
+                            won't be 
                             - If there is a recession in the next year, the logistic model will most likely spot it 
                             - Pay close attention to economy if logistic model prob hits 0.9 or higher 
                             - If the linear model model predicts less than a year, there will most likely be a recession 
@@ -228,7 +230,8 @@ layout = html.Div(
             ], style={"border": "2px black solid",
                       "margin-top": "-21%",
                       "width": "50%",
-                      "margin-left": "1%"}
+                      "margin-left": "1%",
+                      "max-width": "720px"}
         ),
         html.Div(
             [

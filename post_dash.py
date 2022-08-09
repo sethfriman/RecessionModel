@@ -94,8 +94,7 @@ if __name__ == "__main__":
                'background-size': '100%',
                'width': '100%',
                'height': '100%',
-               "min-width": "1438px",
-               "max-width": "1462px"}
+               "min-width": "1438px"}
     )
 
     app.run_server(host='0.0.0.0', port=8050, debug=True)
