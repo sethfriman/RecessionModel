@@ -1,4 +1,3 @@
-import pickle
 import dash
 import pandas as pd
 from dash import html, dcc, callback, Input, Output, dash_table
@@ -6,19 +5,17 @@ import datetime
 from CodeBase.Data.data_viz import Visualizer
 from CodeBase.Model.logistic_model import RINYModel
 from CodeBase.Model.linear_model import YURModel
+from autogluon.tabular import TabularPredictor
 
 dash.register_page(__name__, path='/')
 
 vis = Visualizer(df=pd.read_csv('CodeBase/Data/total_data.csv', index_col=0))
 
-riny_model = pickle.load(open('CodeBase/Model/saved_models/riny_model.sav', 'rb'))
-riny_scaler = pickle.load(open('CodeBase/Model/saved_models/riny_scaler.sav', 'rb'))
-riny = RINYModel(vis.total_data, model=riny_model, scaler=riny_scaler)
+yur_model = TabularPredictor.load("CodeBase/Model/saved_models/AutogluonModels/yur_model/")
+yur = YURModel(vis.total_data, model=yur_model)
 
-yur_model = pickle.load(open('CodeBase/Model/saved_models/yur_model.sav', 'rb'))
-yur_scaler = pickle.load(open('CodeBase/Model/saved_models/yur_scaler.sav', 'rb'))
-yur = YURModel(vis.total_data, train_indices=riny.get_train_indices(),
-               test_indices=riny.get_test_indices(), model=yur_model, scaler=yur_scaler)
+riny_model = TabularPredictor.load("CodeBase/Model/saved_models/AutogluonModels/riny_model/")
+riny = RINYModel(vis.total_data, model=riny_model)
 
 available_years = list(vis.total_data.date.values)
 available_years = list(set([datetime.datetime.strptime(x, '%Y-%m-%d').year for x in available_years]))
@@ -31,7 +28,7 @@ total_preds = riny_preds.merge(yur_preds, how='inner', on='date')
 total_preds.columns = ['Date', 'Recession in Next Year Binary',
                        'Recession in Next Year Probability', 'Years Until Recession']
 total_preds['Recession in Next Year Probability'] = round(total_preds['Recession in Next Year Probability'], 3)
-total_preds['Years Until Recession'] = round(total_preds['Years Until Recession'], 3)
+total_preds['Years Until Recession'] = total_preds['Years Until Recession'].apply(lambda x: float('{:,.3}'.format(x)))
 
 riny_last_date, riny_rec_val = (total_preds.iloc[-1]['Date'],
                                 total_preds.iloc[-1]['Recession in Next Year Probability'])
@@ -96,24 +93,25 @@ layout = html.Div(
                     [
                         html.H2("Latest Predictions",
                                 style={"text-decoration": "underline", "textAlign": "center"}),
-                        html.H4("Logistic Predicts Recession By:", style={"textAlign": "center"}),
+                        html.H4("Binary Predicts Recession By:", style={"textAlign": "center"}),
                         html.H3(riny_rec_pred, style={"textAlign": "center"}),
                         html.Br(),
-                        html.H4("Linear Predicts Recession By:", style={"textAlign": "center"}),
+                        html.H4("Regression Predicts Recession By:", style={"textAlign": "center"}),
                         html.H3(yur_rec_pred, style={"textAlign": "center"}),
                     ], style={"margin-left": "0.5%", "border": "2px black solid", "margin-top": "-17%",
                               "width": "250px"}
                 ),
                 html.Div(
                     [
-                        html.H2("Main Takeaways / Usability", style={"text-decoration": "underline",
+                        html.H2("What to Know", style={"text-decoration": "underline",
                                                                      "textAlign": "center"}),
                         dcc.Markdown('''
-                            - If the logistic model says there will not be a recession in the next year, there probably 
-                            won't be 
-                            - If there is a recession in the next year, the logistic model will most likely spot it 
-                            - Pay close attention to economy if logistic model prob hits 0.9 or higher 
-                            - If the linear model model predicts less than a year, there will most likely be a recession 
+                            - The Binary Model predicts whether or not there will be a recession in the next year, and
+                              returns a value of either 0 (there will not be) or 1 (there will be) as well as the
+                              probability of a recession occurring. It has an accuracy score of 98%, a recall score of 
+                              94%, a precision score of 100%, and an f1 score of 97% all on new data.
+                            - The Regression Model predicts the number of years until the start of the next recession. 
+                              This model has an R2 value of 0.94 on new data.
     
                             *Current scores indicate a **''' + likelihood_string + '''** likelihood of a recession 
                             within the next year*
@@ -144,94 +142,62 @@ layout = html.Div(
                         html.H4("Available as necessary data becomes available"),
                         dash_table.DataTable(total_preds.to_dict('records'),
                                              [{"name": i, "id": i} for i in total_preds.columns]),
-                    ], style={"width": '55%'}
+                    ], style={"width": '50%'}
                 ),
-                dcc.Markdown('''
-                    # Summary 
-                    ##### Note: Values below will change as the model is run, these are not dynamic so they will not \
-                    update with each run. Treat as approximates 
-
-                    **These are just notes made from an observation of the model. They are in no way to 
-                    be used to make financial decisions and should not be considered advice** 
-
-                    ## Logistic Model 
-                    - Accurate about 87% (140/167) of the time on new data 
-                    - When predicting a recession will occur, accurate about 56% (22/39) of the time on new data 
-                    - When predicting a recession will not occur, accurate about 97% (118/122) of the time on new data 
-                    - When predicting a recession will occur, recession is median 0.9 years away 
-                    - When _incorrectly_ predicting a recession will occur, recession is median 1.6 years away 
-                    - When there is a recession in the next year, the model will identify it 94% (66/70) of the time 
-                    - If the model gives a 0.9 probability or higher of a recession, accurate about 75% (16/20) of the 
-                    time 
-
-                    ## Linear Model 
-                    - Scores about a 65% on the test data 
-                    - When predicting recession in <= 1 years, accurate about 89% (51/57) of the time on new data 
-                    - Median difference between years until recession and predicted is -0.55 (model tends to 
-                    overestimate distance) 
-                    - Mean difference between years until recession and predicted is -0.29 (model tends to overestimate 
-                    distance) 
-
-
-                    ## Combined Uses 
-                    - When linear predicting recession in <= 1 year and prob >= 0.5, accurate about 89% (51/57) of the 
-                    time on new data 
-                    - When linear predicting recession in <= 1 year and prob >= 0.8, accurate about 88% (46/52) of the 
-                    time on new data 
-                    - When linear predicting recession in <= 1 year and prob >= 0.9, accurate about 86% (37/43) of the 
-                    time on new data 
-                    - When linear predicting recession in <= 1 year and prob >= 0.95, accurate about 93% (26/28) of the 
-                    time on new data 
-                    - When the logistic model predicts a recession, the linear model agrees just 37% (57/153) of the 
-                    time on new data''', style={"border": "2px black solid"})
+                html.Div(
+                    [
+                        html.H2("Model Calculator", style={"text-decoration": "underline", "margin-left": "1%"}),
+                        dcc.Markdown("#### Customize the boxes below to see how the model operates. Have some fun with "
+                                     "it! [Data Descriptions](/data-description)",
+                                     style={"margin-left": "1%"}),
+                        html.Div(
+                            [
+                                html.Label('1 Year Housing Climb Change',
+                                           style={"font-size": "12px"}),
+                                html.Label('3 Year CPI Change', style={"font-size": "12px", "margin-left": "3.5%"}),
+                                html.Label('Yield Curve Difference', style={"font-size": "12px", "margin-left": "5%"}),
+                                html.Label('Years Since Recession', style={"font-size": "12px", "margin-left": "4.5%"}),
+                                html.Label('Unemployment Rate', style={"font-size": "12px", "margin-left": "5%"})
+                            ], style={"verticalAlign": "middle"}
+                        ),
+                        html.Div(
+                            [
+                                dcc.Input(id='housing-change-input', type="number", value=0,
+                                          style={"width": "7%", "margin-left": "7%"}, persistence=True),
+                                dcc.Input(id='cpi-change-input', type="number", value=0,
+                                          style={"width": "7%", "margin-left": "11.2%"}, persistence=True),
+                                dcc.Input(id='yield-diff', type="number", value=0,
+                                          style={"width": "7%", "margin-left": "11.2%"}, persistence=True),
+                                dcc.Input(id='years-since-recession', type="number", value=0,
+                                          style={"width": "7%", "margin-left": "11.2%"}, persistence=True),
+                                dcc.Input(id='un-rate', type="number", value=0,
+                                          style={"width": "7%", "margin-left": "11.2%"}, persistence=True)
+                            ], style={"verticalAlign": "middle"}
+                        ),
+                        html.Div(
+                            [
+                                html.Label('Current Value: ' + str(round(most_recent_data['housing_climb_change'], 3)),
+                                           style={"font-size": "12px", "margin-left": "3%"}),
+                                html.Label('Current Value: ' + str(round(most_recent_data['36_mo_cpi_change_all'], 3)),
+                                           style={"font-size": "12px", "margin-left": "5.5%"}),
+                                html.Label('Current Value: ' + str(round(most_recent_data['yield_diff'], 3)),
+                                           style={"font-size": "12px", "margin-left": "5.5%"}),
+                                html.Label('Current Value: ' + str(round(most_recent_data['years_since_recession'], 3)),
+                                           style={"font-size": "12px", "margin-left": "5.5%"}),
+                                html.Label('Current Value: ' + str(round(most_recent_data['un_rate'], 3)),
+                                           style={"font-size": "12px", "margin-left": "6.5%"})
+                            ], style={"verticalAlign": "middle"}
+                        ),
+                        html.H3(id="log-pred", style={"margin-left": "1%"}),
+                        html.H3(id="lin-pred", style={"margin-left": "1%"}),
+                    ], style={"border": "2px black solid",
+                              "margin-top": "10%",
+                              "width": "50%",
+                              "margin-left": "1%",
+                              "max-width": "720px",
+                              "min-width": "720px"}
+                ),
             ], style={"display": 'flex', "margin-top": "5%"}
-        ),
-        html.Div(
-            [
-                html.H2("Model Calculator", style={"text-decoration": "underline", "margin-left": "1%"}),
-                dcc.Markdown("#### Customize the boxes below to see how the model operates. Have some fun with it! ["
-                             "Data Descriptions](/data-description)",
-                             style={"margin-left": "1%"}),
-                html.Div(
-                    [
-                        html.Label('1 Year Housing Climb Change',
-                                   style={"font-size": "12px", "margin-left": "7%"}),
-                        html.Label('3 Year CPI Change', style={"font-size": "12px", "margin-left": "5.5%"}),
-                        html.Label('Yield Curve Difference', style={"font-size": "12px", "margin-left": "8%"}),
-                        html.Label('Years Since Recession', style={"font-size": "12px", "margin-left": "7%"})
-                    ], style={"verticalAlign": "middle"}
-                ),
-                html.Div(
-                    [
-                        dcc.Input(id='housing-change-input', type="number", value=0,
-                                  style={"width": "7%", "margin-left": "14%"}, persistence=True),
-                        dcc.Input(id='cpi-change-input', type="number", value=0,
-                                  style={"width": "7%", "margin-left": "14%"}, persistence=True),
-                        dcc.Input(id='yield-diff', type="number", value=0,
-                                  style={"width": "7%", "margin-left": "14%"}, persistence=True),
-                        dcc.Input(id='years-since-recession', type="number", value=0,
-                                  style={"width": "7%", "margin-left": "14%"}, persistence=True)
-                    ], style={"verticalAlign": "middle"}
-                ),
-                html.Div(
-                    [
-                        html.Label('Current Value: ' + str(round(most_recent_data['housing_climb_change'], 3)),
-                                   style={"font-size": "12px", "margin-left": "11%"}),
-                        html.Label('Current Value: ' + str(round(most_recent_data['36_mo_cpi_change_all'], 3)),
-                                   style={"font-size": "12px", "margin-left": "8%"}),
-                        html.Label('Current Value: ' + str(round(most_recent_data['yield_diff'], 3)),
-                                   style={"font-size": "12px", "margin-left": "8%"}),
-                        html.Label('Current Value: ' + str(round(most_recent_data['years_since_recession'], 3)),
-                                   style={"font-size": "12px", "margin-left": "8%"})
-                    ], style={"verticalAlign": "middle"}
-                ),
-                html.H3(id="log-pred", style={"margin-left": "1%"}),
-                html.H3(id="lin-pred", style={"margin-left": "1%"}),
-            ], style={"border": "2px black solid",
-                      "margin-top": "-21%",
-                      "width": "50%",
-                      "margin-left": "1%",
-                      "max-width": "720px"}
         ),
         html.Div(
             [
@@ -244,13 +210,15 @@ layout = html.Div(
     
                     Data shown here was often aggregated or calculated for use in the model and may not 
                     be a direct representation of the source it was pulled from. 
+                    
+                    Crediting the autogluon package with the technology utilized to create these models.
     
                     I would also like to acknowledge the mortada [fredapi](
                     https://github.com/mortada/fredapi) package for allowing simple retrievals of some 
-                    FRED data.""")
+                    FRED data.""", style={"margin-left": "3%"})
             ], style={"border": "2px black solid",
                       "margin-top": "1%",
-                      "width": "50%",
+                      "width": "80%",
                       "margin-left": "1%",
                       "margin-bottom": "1%"},
         ),
@@ -294,8 +262,9 @@ def update_figure(variables, x, year_range, in_rec):
     Input("cpi-change-input", "value"),
     Input("yield-diff", "value"),
     Input("years-since-recession", "value"),
+    Input("un-rate", "value"),
 )
-def make_preds(house, cpi, yd, ysr):
+def make_preds(house, cpi, yd, ysr, un):
     if house is None:
         house = 0
     if cpi is None:
@@ -304,6 +273,8 @@ def make_preds(house, cpi, yd, ysr):
         yd = 0
     if ysr is None:
         ysr = 0
-    log_pred = riny.make_pred(house, cpi, yd, ysr)
-    lin_pred = yur.make_pred(house, cpi, yd, ysr)
+    if un is None:
+        un = 0
+    log_pred = riny.make_pred(house, cpi, yd, ysr, un)
+    lin_pred = yur.make_pred(house, cpi, yd, ysr, un)
     return 'Probability of Recession: ' + str(log_pred), 'Years Until Recession: ' + str(lin_pred)
