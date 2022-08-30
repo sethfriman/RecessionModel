@@ -9,18 +9,24 @@ from autogluon.tabular import TabularPredictor
 
 dash.register_page(__name__, path='/')
 
-vis = Visualizer(df=pd.read_csv('CodeBase/Data/total_data.csv', index_col=0))
+total_data = pd.read_csv('CodeBase/Data/total_data.csv', index_col=0)
 
 yur_model = TabularPredictor.load("CodeBase/Model/saved_models/AutogluonModels/yur_model/")
-yur = YURModel(vis.total_data, model=yur_model)
+yur = YURModel(total_data, model=yur_model)
 
 riny_model = TabularPredictor.load("CodeBase/Model/saved_models/AutogluonModels/riny_model/")
-riny = RINYModel(vis.total_data, model=riny_model)
+riny = RINYModel(total_data, model=riny_model)
+
+total_data['YUR_Prediction'] = yur.linreg.predict(total_data)
+total_data['RINY_prediction'] = riny.logreg.predict(total_data)
+total_data['RINY_prediction_probability'] = riny.logreg.predict_proba(total_data)[1].values
+
+vis = Visualizer(total_data)
 
 available_years = list(vis.total_data.date.values)
 available_years = list(set([datetime.datetime.strptime(x, '%Y-%m-%d').year for x in available_years]))
 
-fig = vis.makePlot(['yield_diff', '36_mo_cpi_change_all'])
+fig = vis.makePlot(['years_until_recession', 'YUR_Prediction'])
 
 riny_preds = riny.get_present_data()
 yur_preds = yur.get_present_data()
@@ -68,7 +74,7 @@ layout = html.Div(
                                 list(vis.total_data.columns)
                             ],
                             className="dropdown",
-                            value=['yield_diff', '36_mo_cpi_change_all'],
+                            value=['years_until_recession', 'YUR_Prediction'],
                             multi=True,
                             persistence=True
                         )
@@ -104,14 +110,15 @@ layout = html.Div(
                 html.Div(
                     [
                         html.H2("What to Know", style={"text-decoration": "underline",
-                                                                     "textAlign": "center"}),
+                                                       "textAlign": "center"}),
                         dcc.Markdown('''
-                            - The Binary Model predicts whether or not there will be a recession in the next year, and
-                              returns a value of either 0 (there will not be) or 1 (there will be) as well as the
-                              probability of a recession occurring. It has an accuracy score of 98%, a recall score of 
-                              94%, a precision score of 100%, and an f1 score of 97% all on new data.
-                            - The Regression Model predicts the number of years until the start of the next recession. 
-                              This model has an R2 value of 0.94 on new data.
+                            - The **RINY** (recession in next year) Model predicts whether or not there will be a 
+                              recession in the next year, and returns a value of either 0 (there will not be) or 1 
+                              (there will be) as well as the probability of a recession occurring. It has an accuracy 
+                              score of 98%, a recall score of 94%, a precision score of 100%, and an f1 score of 97% 
+                              all on new data.
+                            - The **YUR** (years until recession) Model predicts the number of years until the start of 
+                              the next recession. This model has an R2 value of 0.94 on new data.
     
                             *Current scores indicate a **''' + likelihood_string + '''** likelihood of a recession 
                             within the next year*

@@ -33,6 +33,8 @@ app.layout = html.Div(
         html.H1("Recession Tracker Dashboard", style={"margin-left": "1%"}),
         html.H3('Created By: Seth Friman', style={"margin-left": "1%"}),
         html.H4('Beta Version', style={"margin-left": "1%"}),
+        dcc.Markdown('*Disclaimer: Nothing on this site is financial advice. This is purely for research and '
+                     'entertainment purposes*', style={"margin-left": "1%"}),
         dash.page_container
     ],
     className="container",

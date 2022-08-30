@@ -41,6 +41,12 @@ layout = html.Div(children=[
         dcc.Markdown("**Recession in Next Year**: 1 if a recession starts within the next year, 0 otherwise. This is the "
                      "target variable for the logistic regression model which outputs both a binary and probability "
                      "prediction of this variable."),
+        dcc.Markdown("**Yur Prediction**: The YUR model's predicted number of years until the start of the next "
+                     "recession. This value is calculated and returned as a continuous variable. "),
+        dcc.Markdown("**Riny Prediction**: The RINY model's prediction for if there will be a recession in the next "
+                     "year. 1 if a recession is predicted to start within the next year, 0 otherwise."),
+        dcc.Markdown("**Riny Prediction Probability**: The RINY model's predicted probability of a recession "
+                     "starting within the next year. It has a value bounded between 0 and 1."),
         html.H2("Other Variables", style={"text-decoration": "underline", "margin-top": "5%"}),
         dcc.Markdown("**Date**: All dates are anchored to the first of that month, and data is calculated using monthly "
                      "snapshots. Date format is YYYY-mm-dd"),
